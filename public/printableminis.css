@@ -19,6 +19,10 @@
   line-height: 75%;
 }
 
+.v-img.tiny {
+  min-height: 0.75in;
+}
+
 .tiny-half-base {
   height: 0.25in;
 }
@@ -29,6 +33,10 @@
 
 .small {
   width: 1in;
+}
+
+.v-img.small {
+  min-height: 1.5in;
 }
 
 .small-half-base {
@@ -43,6 +51,10 @@
   width: 1in;
 }
 
+.v-img.medium {
+  min-height: 1.5in;
+}
+
 .medium-half-base {
   height: 0.5in;
 }
@@ -53,6 +65,10 @@
 
 .large {
   width: 2in;
+}
+
+.v-img.large {
+  min-height: 3in;
 }
 
 .large-half-base {
@@ -67,6 +83,10 @@
   width: 3in;
 }
 
+.v-img.huge {
+  min-height: 4.5in;
+}
+
 .huge-half-base {
   height: 1.5in;
 }
@@ -77,6 +97,11 @@
 
 .gargantuan {
   width: 4in;
+  min-height: 8in;
+}
+
+.v-img.gargantuan {
+  min-height: 6in;
 }
 
 .gargantuan-half-base {

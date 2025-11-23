@@ -9,11 +9,11 @@
                 Settings
               </template>
               <template v-slot:append>
-                <v-btn prepend-icon="mdi-shuffle" @click="randomiseStyle">
-                  <div class="d-none d-lg-block">Random</div>
+                <v-btn prepend-icon="mdi-restart" @click="resetTokens">
+                  <div class="d-none d-lg-block">Reset tokens</div>
                 </v-btn>
                 <v-btn prepend-icon="mdi-restart" @click="resetStyle">
-                  <div class="d-none d-lg-block">Reset</div>
+                  <div class="d-none d-lg-block">Reset style</div>
                 </v-btn>
                 <v-btn prepend-icon="mdi-printer" @click="print">
                   <div class="d-none d-lg-block">Print</div>
@@ -24,42 +24,26 @@
               </v-card-subtitle>
               <v-card-text :class="{'pa-0 ma-0': $vuetify.display.smAndDown}">
                 <v-expansion-panels variant="accordion">
-                  <v-expansion-panel key="Layout">
-                    <v-expansion-panel-title>
-                      Sheet
-                    </v-expansion-panel-title>
-                    <v-expansion-panel-text>
-                      <v-row>
-                        <v-col md="12">
-                          <div class="text-caption">Number of tokens</div>
-                          <v-slider md="9" v-model="sheet.copies" :min="1" :max="20" :step="1"
-                            thumb-label></v-slider>
-                        </v-col>
-                      </v-row>
-                      <v-row>
-                        <v-col md="6">
-                          <div class="text-caption">Margins</div>
-                          <v-slider v-model="sheet.margins" :min="0" :max="0.5" :step="0.05"
-                            thumb-label></v-slider>
-                        </v-col>
-                        <v-col md="3">
-                          <div class="text-caption">Numbered</div>
-                          <v-switch density="compact" v-model="sheet.numbered"></v-switch>
-                        </v-col>
-                        <v-col md="3">
-                          <v-text-field density="compact" v-if="sheet.numbered" v-model="sheet.startNumber"
-                            persistent-hint hint="Start Number" single-line type="number" />
-                        </v-col>
-                      </v-row>
-
-                    </v-expansion-panel-text>
-                  </v-expansion-panel>
                   <v-expansion-panel key="Image">
                     <v-expansion-panel-title>
-                      Token
+                      Tokens
                     </v-expansion-panel-title>
                     <v-expansion-panel-text>
-                      <v-row>
+                      <v-card-actions>
+                        <v-btn color="primary" block @click="this.tokens.unshift({
+                      imageUrl: 'https://i.imgur.com/bYJ3gBl.png',
+                      reverseImageUrl: null,
+                      flipReverseImage: false,
+                      name: '',
+                      size: 'medium',
+                      copies: 1,
+                      numbered: false,
+                      startNumber: 1,
+                      imageRoundedEdgeAmount: 50,
+                      imageBackgroundColour: '#FFFFFF',
+                      })">Add token</v-btn>
+                      </v-card-actions>
+                      <v-row v-for="(token, index) in tokens" :key="index">
                         <v-col md="5">
                           <v-text-field v-model="token.imageUrl" label="Image URL"></v-text-field>
                         </v-col>
@@ -77,9 +61,22 @@
                           <v-select label="Size" v-model="token.size" :items="sizes" :item-props="itemProps"></v-select>
                         </v-col>
                         <v-col md="6">
-                          <v-slider label="Rounded Edges" v-model="style.imageRoundedEdgeAmount" :min="0" :max="100"
+                          <v-slider label="Rounded Edges" v-model="token.imageRoundedEdgeAmount" :min="0" :max="100"
                             :step="1" thumb-label></v-slider>
                         </v-col>
+                          <v-col md="12">
+                            <div class="text-caption">Number of tokens</div>
+                            <v-slider md="9" v-model="token.copies" :min="0" :max="20" :step="1"
+                                      thumb-label></v-slider>
+                          </v-col>
+                          <v-col md="3">
+                            <div class="text-caption">Numbered</div>
+                            <v-switch density="compact" v-model="token.numbered"></v-switch>
+                          </v-col>
+                          <v-col md="3">
+                            <v-text-field density="compact" v-if="token.numbered" v-model="token.startNumber"
+                                          persistent-hint hint="Start Number" single-line type="number" />
+                          </v-col>
                         <v-col md="3">
                           <v-btn color="primary" append-icon="mdi-palette">
                             <div class="d-none d-lg-block">Background</div>
@@ -89,8 +86,8 @@
                                   <span class="text-h5">Select colour</span>
                                 </v-card-title>
                                 <v-card-text>
-                                  <v-color-picker v-model="style.imageBackgroundColour" hide-inputs show-swatches
-                                    :swatches="swatches"></v-color-picker>
+                                  <v-color-picker v-model="token.imageBackgroundColour" hide-inputs show-swatches
+                                                  :swatches="swatches"></v-color-picker>
                                 </v-card-text>
                                 <v-card-actions>
                                   <v-btn color="primary" block @click="imageBackgroundColourDialog = false">Close
@@ -100,6 +97,9 @@
                             </v-dialog>
                           </v-btn>
                         </v-col>
+                          <v-card-actions>
+                            <v-btn color="primary" block @click="this.tokens = this.tokens.filter(t => t !== token)">Remove token</v-btn>
+                          </v-card-actions>
                       </v-row>
                     </v-expansion-panel-text>
                   </v-expansion-panel>
@@ -108,6 +108,13 @@
                       Style
                     </v-expansion-panel-title>
                     <v-expansion-panel-text>
+                      <v-row>
+                        <v-col md="6">
+                          <div class="text-caption">Margins</div>
+                          <v-slider v-model="style.margins" :min="0" :max="0.5" :step="0.05"
+                                    thumb-label></v-slider>
+                        </v-col>
+                      </v-row>
                       <v-radio-group label="Border Style" v-model="style.borderStyle">
                         <v-radio label="solid" value="solid"></v-radio>
                         <v-radio label="dashed" value="dashed"></v-radio>
@@ -220,7 +227,6 @@
                             </v-dialog>
                           </v-btn>
                         </v-col>
-
                       </v-row>
                     </v-expansion-panel-text>
                   </v-expansion-panel>
@@ -252,25 +258,27 @@
 
               <v-card-text>
                 <div id="print-me">
-                  <div v-for="(item, index) in sheet.copies" :key="index" :style="`float: left; ${fullTokenStyle}`"
+                  <div v-for="(token, index) in tokens">
+                  <div v-for="(item, index) in token.copies" :key="index" :style="`float: left; ${fullTokenStyle}`"
                     class="align-center text-center">
-                    <div :style="`${tokenStyle} ${baseStyle}`" :class="`rotated ${token.size} ${token.size}-half-base`">
+                    <div :style="`${tokenStyle} ${baseStyle(token)}`" :class="`rotated ${token.size} ${token.size}-half-base`">
                       <div v-if="token.name">{{ token.name }}</div>
                       <div v-else>&nbsp;</div>
-                      <div v-if="sheet.numbered">{{ index + Number(sheet.startNumber) }}</div>
+                      <div v-if="token.numbered">{{ index + Number(token.startNumber) }}</div>
                       <div v-else>&nbsp;</div>
                     </div>
-                    <v-img v-if="token.reverseImageUrl" :style="imageStyle" :class="`${token.size} ${token.flipReverseImage ? 'flip-horizontal-and-vertical' : 'flip-vertical'}`" :src="`${token.reverseImageUrl}`" />
-                    <v-img v-else :style="imageStyle" :class="`${token.size} flip-vertical`" :src="`${token.imageUrl}`" />
-                    <v-img :style="imageStyle" :class="`${token.size}`" :src="`${token.imageUrl}`" />
-                    <div :style="`${tokenStyle} ${baseStyle}`" :class="`${token.size} ${token.size}-half-base`">
+                    <v-img v-if="token.reverseImageUrl" :style="imageStyle(token)" :class="`${token.size} ${token.flipReverseImage ? 'flip-horizontal-and-vertical' : 'flip-vertical'}`" :src="`${token.reverseImageUrl}`" />
+                    <v-img v-else :style="imageStyle(token)" :class="`${token.size} flip-vertical`" :src="`${token.imageUrl}`" />
+                    <v-img :style="imageStyle(token)" :class="`${token.size}`" :src="`${token.imageUrl}`" />
+                    <div :style="`${tokenStyle} ${baseStyle(token)}`" :class="`${token.size} ${token.size}-half-base`">
                       <div v-if="token.name">{{ token.name }}</div>
                       <div v-else>&nbsp;</div>
-                      <div v-if="sheet.numbered">{{ index + Number(sheet.startNumber) }}</div>
+                      <div v-if="token.numbered">{{ index + Number(token.startNumber) }}</div>
                       <div v-else>&nbsp;</div>
                     </div>
                     <div :style="tokenStyle" :class="`${token.size} ${token.size}-base`"></div>
                   </div>
+                </div>
                 </div>
               </v-card-text>
             </v-card>
@@ -300,16 +308,19 @@ export default defineComponent({
   name: 'PaperMiniMaker}',
 
   data: () => ({
-    token: {
+    tokens: [{
       imageUrl: "https://i.imgur.com/bYJ3gBl.png",
       reverseImageUrl: null,
       flipReverseImage: false,
-      name: "Werewolf",
+      name: "",
       size: "medium",
-    },
-    style: {
-      imageBackgroundColour: "#FFFFFF",
+      copies: 1,
+      numbered: false,
+      startNumber: 1,
       imageRoundedEdgeAmount: 50,
+      imageBackgroundColour: "#FFFFFF",
+    }],
+    style: {
       borderStyle: "solid",
       borderWidth: 1,
       borderColour: "#888888",
@@ -324,12 +335,7 @@ export default defineComponent({
         value: 'Georgia, serif'
       },
       fontSize: 14,
-    },
-    sheet: {
-      copies: 14,
       margins: 0,
-      numbered: true,
-      startNumber: 1,
     },
     imageBackgroundColourDialog: false,
     baseBackgroundColourDialog: false,
@@ -339,8 +345,6 @@ export default defineComponent({
     presetStyles: [
       {
         name: "default",
-        imageBackgroundColour: "#FFFFFF",
-        imageRoundedEdgeAmount: 50,
         borderStyle: "solid",
         borderWidth: 1,
         borderColour: "#888888",
@@ -357,8 +361,6 @@ export default defineComponent({
       },
       {
         name: "flat",
-        imageBackgroundColour: "#FFFFFF",
-        imageRoundedEdgeAmount: 0,
         borderStyle: "solid",
         borderWidth: 1,
         borderColour: "#888888",
@@ -489,16 +491,7 @@ export default defineComponent({
   }),
   computed: {
     fullTokenStyle() {
-      return `margin: ${this.sheet.margins}in`
-    },
-    imageStyle() {
-      const roundedEdgeMeasurement = this.sizes.filter(s => s.value === this.token.size)[0]!.width * (this.style.imageRoundedEdgeAmount / 200)
-      return `border-style: ${this.style.borderStyle};` +
-        `border-width: ${this.style.borderWidth}px;` +
-        `border-top-left-radius: ${roundedEdgeMeasurement}in;` +
-        `border-top-right-radius: ${roundedEdgeMeasurement}in;` +
-        `background-color: ${this.style.imageBackgroundColour} !important; print-color-adjust: exact;` +
-        `border-color: ${this.style.borderColour};`
+      return `margin: ${this.style.margins}in`
     },
     tokenStyle() {
 
@@ -507,8 +500,29 @@ export default defineComponent({
         `border-color: ${this.style.borderColour};`
 
     },
-    baseStyle() {
-      const roundedEdgeMeasurement = this.sizes.filter(s => s.value === this.token.size)[0]!.width * (this.style.baseRoundedEdgeAmount / 200)
+  },
+  methods: {
+    resetTokens() {
+      this.tokens = []
+    },
+    resetStyle() {
+      this.style.baseBackgroundColour = `#DDDDDD`
+      this.style.baseRoundedEdgeAmount = 100
+      this.style.borderColour = `#888888`
+      this.style.baseTextColour = `#000000`
+      this.style.fontFamily = { title: "Georgia", value: 'Georgia, serif' }
+    },
+    imageStyle(token: any) {
+      const roundedEdgeMeasurement = this.sizes.filter(s => s.value === token.size)[0]!.width * (token.imageRoundedEdgeAmount / 200)
+      return `border-style: ${this.style.borderStyle};` +
+        `border-width: ${this.style.borderWidth}px;` +
+        `border-top-left-radius: ${roundedEdgeMeasurement}in;` +
+        `border-top-right-radius: ${roundedEdgeMeasurement}in;` +
+        `background-color: ${token.imageBackgroundColour} !important; print-color-adjust: exact;` +
+        `border-color: ${this.style.borderColour};`
+    },
+    baseStyle(token: any) {
+      const roundedEdgeMeasurement = this.sizes.filter(s => s.value === token.size)[0]!.width * (token.imageRoundedEdgeAmount / 200)
       switch (this.style.baseBackgroundType) {
         case "solid":
           return `background-color: ${this.style.baseBackgroundColour} !important; print-color-adjust: exact;` +
@@ -522,31 +536,6 @@ export default defineComponent({
         default:
           return ""
       }
-    }
-  },
-  methods: {
-    resetStyle() {
-      this.style.imageBackgroundColour = `#FFFFFF`
-      this.style.imageRoundedEdgeAmount = 50
-      this.style.baseBackgroundColour = `#DDDDDD`
-      this.style.baseRoundedEdgeAmount = 100
-      this.style.borderColour = `#888888`
-      this.style.baseTextColour = `#000000`
-      this.style.fontFamily = { title: "Georgia", value: 'Georgia, serif' }
-    },
-    randomiseStyle() {
-      this.style.imageBackgroundColour = `#${Math.floor(Math.random() * 16777215).toString(16)}`
-      this.style.imageRoundedEdgeAmount = Math.floor(Math.random() * 100)
-      this.style.baseBackgroundColour = `#${Math.floor(Math.random() * 16777215).toString(16)}`
-      this.style.baseRoundedEdgeAmount = Math.floor(Math.random() * 100)
-      this.style.borderColour = `#${Math.floor(Math.random() * 16777215).toString(16)}`
-      this.style.baseTextColour = `#${Math.floor(Math.random() * 16777215).toString(16)}`
-      this.style.fontFamily = this.fontFamilies[Math.floor(Math.random() * this.fontFamilies.length)]
-      // borderStyle: "solid",
-      // borderWidth: 1,
-      // baseBackgroundType: "solid",
-      // baseBackgroundColour: "darkgrey",
-      // baseRoundedEdgeAmount: 100,
     },
     itemProps(item: any) {
       return {
@@ -567,7 +556,7 @@ export default defineComponent({
           printableMinisCssPath,
           `./pages/${this.pageSize}.${this.pageOrientation}.css`
         ],
-        windowTitle: `Paper Minis${this.token.name ? ' - ' + this.token.name : ''}`,
+        windowTitle: `Paper Minis${this.tokens.map(token => token.name ? ' - ' + token.name : '').join('')}`,
         autoClose: true
       })
       paperize()
